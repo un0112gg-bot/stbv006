@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SANTOS BRAVOS</title>
+
+<style>
+body{
+margin:0;
+font-family:Arial;
+background:#0d0d0d;
+color:white;
+display:flex;
+}
+
+/* SIDEBAR */
+.sidebar{
+width:260px;
+background:#111;
+padding:15px;
+height:100vh;
+overflow:auto;
+}
+
+.sidebar h2{
+color:#00ff88;
+}
+
+/* CATEGORY */
+.cat-btn{
+display:block;
+width:100%;
+margin:5px 0;
+padding:10px;
+background:#222;
+border:none;
+color:white;
+cursor:pointer;
+border-radius:6px;
+}
+
+.cat-btn:hover{
+background:#00ff88;
+color:black;
+}
+
+/* MAIN */
+.main{
+flex:1;
+padding:20px;
+}
+
+/* SEARCH */
+.search{
+width:100%;
+padding:10px;
+margin-bottom:15px;
+border-radius:8px;
+border:none;
+}
+
+/* GRID */
+.grid{
+display:grid;
+grid-template-columns:repeat(auto-fill,minmax(180px,1fr));
+gap:15px;
+}
+
+/* CARD */
+.card{
+background:#1c1c1c;
+border-radius:12px;
+overflow:hidden;
+cursor:pointer;
+transition:0.2s;
+}
+
+.card:hover{
+transform:scale(1.05);
+}
+
+.card img{
+width:100%;
+}
+
+.card div{
+padding:8px;
+}
+
+/* ADMIN */
+.admin input, .admin select{
+width:100%;
+margin:5px 0;
+padding:8px;
+border-radius:6px;
+border:none;
+}
+
+/* MOBILE */
+@media(max-width:768px){
+body{flex-direction:column}
+.sidebar{width:100%;height:auto}
+}
+</style>
+</head>
+
+<body>
+
+<div class="sidebar">
+<h2>SANTOS BRAVOS</h2>
+
+<button class="cat-btn" onclick="setCategory('방송')">방송</button>
+<button class="cat-btn" onclick="setCategory('자컨')">자컨</button>
+<button class="cat-btn" onclick="setCategory('무대')">무대</button>
+<button class="cat-btn" onclick="setCategory('사진')">사진</button>
+
+<hr>
+
+<input class="search" placeholder="검색..." oninput="search(this.value)">
+
+<hr>
+
+<div id="loginBox">
+<input id="id" placeholder="ID">
+<input id="pw" type="password" placeholder="PW">
+<button onclick="login()">로그인</button>
+</div>
+
+<div class="admin" id="adminBox" style="display:none">
+<select id="catSelect">
+<option>방송</option>
+<option>자컨</option>
+<option>무대</option>
+<option>사진</option>
+</select>
+
+<input id="title" placeholder="제목">
+<input id="link" placeholder="유튜브 링크">
+<input id="date" type="date">
+
+<button onclick="addItem()">추가</button>
+</div>
+
+</div>
+
+<div class="main">
+<h2 id="titleText">방송</h2>
+<div class="grid" id="grid"></div>
+</div>
+
+<script>
+
+let category="방송"
+let allData=[]
+
+function getYoutubeThumbnail(url){
+let id=url.split("v=")[1]
+return `https://img.youtube.com/vi/${id}/0.jpg`
+}
+
+function login(){
+if(id.value==="admin" && pw.value==="1234"){
+adminBox.style.display="block"
+loginBox.style.display="none"
+}
+}
+
+function setCategory(c){
+category=c
+titleText.innerText=c
+render()
+}
+
+function addItem(){
+let item={
+category:catSelect.value,
+title:title.value,
+link:link.value,
+img:getYoutubeThumbnail(link.value),
+date:date.value
+}
+allData.push(item)
+save()
+render()
+}
+
+function save(){
+localStorage.setItem("data",JSON.stringify(allData))
+}
+
+function load(){
+allData=JSON.parse(localStorage.getItem("data")||"[]")
+}
+
+function render(list=null){
+let data=(list||allData).filter(i=>i.category===category)
+data.sort((a,b)=>new Date(b.date)-new Date(a.date))
+
+grid.innerHTML=data.map(i=>`
+<div class="card" onclick="window.open('${i.link}')">
+<img src="${i.img}">
+<div>${i.title}<br><small>${i.date}</small></div>
+</div>
+`).join("")
+}
+
+function search(q){
+let result=allData.filter(i=>i.title.includes(q))
+render(result)
+}
+
+load()
+render()
+
+</script>
+
+</body>
+</html>
